@@ -182,7 +182,7 @@ int main(){
     // cria arquivo de saída
     FILE* saida;
 
-    saida = fopen("bordex/img/output/out.bmp", "wb");
+    saida = fopen("bordex/img/output/preprocessed.bmp", "wb");
 
     if(saida == NULL){
         Erro erro3 = {
