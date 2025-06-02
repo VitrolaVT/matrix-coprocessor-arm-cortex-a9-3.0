@@ -12,7 +12,7 @@ typedef struct {
 
 // funcao que adiciona o erro
 void registrarErro(Erro erro) {
-    FILE *log_file = fopen("log.txt", "a"); // 'a' para append (adicionar ao final)
+    FILE *log_file = fopen("bordex/log.txt", "a"); // 'a' para append (adicionar ao final)
     
     if (log_file == NULL) {
         printf("Erro ao abrir arquivo de log!\n");
@@ -34,7 +34,7 @@ int main(){
 
     FILE* sample; // ponteiro para os dados do arquivo
     // primeiro, abre o arquivo em sample
-    sample = fopen("img/sample/1.bmp", "rb");
+    sample = fopen("bordex/img/sample/1.bmp", "rb");
 
     // verifica se existe a imagem
     if(sample == NULL){
@@ -182,7 +182,7 @@ int main(){
     // cria arquivo de saída
     FILE* saida;
 
-    saida = fopen("img/out/out.bmp", "wb");
+    saida = fopen("bordex/img/output/out.bmp", "wb");
 
     if(saida == NULL){
         Erro erro3 = {
