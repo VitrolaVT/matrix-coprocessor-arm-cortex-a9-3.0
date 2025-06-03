@@ -23,8 +23,24 @@ int main(){
     int8_t img_section[25];
     int8_t novoElemento;
 
+    // declaração de espaços para os pixels da imagem e cabeçalho para o retorno
+    int8_t* dadosPixels = NULL;
+    unsigned char* dadosCabec = NULL;
+
+    // pega a imagem e realiza preprocessamento
+    preprocess ("1", &dadosPixels, &dadosCabec); // 1.bmp é o nome da imagem
+
+    // itera por todos os pixels
+    for(i = 0; i < 9600; i++){
+        img[i] = dadosPixels[i];
+    }
+
     // envia para operação de convolução
     operate_buffer_send(opcode, 3, 0, img_section, SOBEL_X, SOBEL_Y, &novoElemento);
+
+    // libera memória para dadosPixels e cabec
+    free (dadosPixels);
+    free (dadosCabec);
 
     return 0;
 }

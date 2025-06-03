@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <windows.h>
+#include <string.h>
+#include <stdint.h>
 
 // define struct para erros
 typedef struct {
@@ -10,30 +12,20 @@ typedef struct {
     time_t timestamp;
 } Erro;
 
-// funcao que adiciona o erro
-void registrarErro(Erro erro) {
-    FILE *log_file = fopen("bordex/log.txt", "a"); // 'a' para append (adicionar ao final)
-    
-    if (log_file == NULL) {
-        printf("Erro ao abrir arquivo de log!\n");
-    }
+void registrarErro(Erro erro);
 
-    // Converte o timestamp para formato legível
-    char timestamp_str[20];
-    strftime(timestamp_str, sizeof(timestamp_str), "%Y-%m-%d %H:%M:%S", localtime(&erro.timestamp));
-
-    // Escreve no arquivo de log
-    fprintf(log_file, "[%s] ERRO %d: %s\n", timestamp_str, erro.codigo, erro.mensagem);
-    fclose(log_file);
-}
-
-int main(){
+int preprocess (char* nomeImg, int8_t** pixels, unsigned char** cabec){
     //inicializa o arquivo de log (cria novo ou limpa existente)
     FILE *log_init = fopen("log.txt", "w");
     if (log_init) fclose(log_init);
 
     FILE* sample; // ponteiro para os dados do arquivo
     // primeiro, abre o arquivo em sample
+    const char* prefixo = "bordex/img/sample/";
+    const char* sufixo = ".bmp";
+    char caminho[150];
+
+    snprintf(caminho, sizeof(caminho), "%s%s%s", prefixo, nomeImg, sufixo);
     sample = fopen("bordex/img/sample/1.bmp", "rb");
 
     // verifica se existe a imagem
@@ -206,9 +198,30 @@ int main(){
         memcpy(&invertedData[i * rowSize], &imageData[(height - 1 - i) * rowSize], rowSize);
     }
     fwrite(invertedData, sizeof(unsigned char), imgSize, saida);
+
+    // retorna os dados dos pixels e cabeçalho
+    *pixels = (int8_t*)invertedData;
+    *cabec = malloc(offset);
+    memcpy(*cabec, header, offset);
+
     free(invertedData);
 
     fclose(saida);
+}
 
-    return 0;
+// funcao que adiciona o erro
+void registrarErro(Erro erro) {
+    FILE *log_file = fopen("bordex/log.txt", "a"); // 'a' para append (adicionar ao final)
+    
+    if (log_file == NULL) {
+        printf("Erro ao abrir arquivo de log!\n");
+    }
+
+    // Converte o timestamp para formato legível
+    char timestamp_str[20];
+    strftime(timestamp_str, sizeof(timestamp_str), "%Y-%m-%d %H:%M:%S", localtime(&erro.timestamp));
+
+    // Escreve no arquivo de log
+    fprintf(log_file, "[%s] ERRO %d: %s\n", timestamp_str, erro.codigo, erro.mensagem);
+    fclose(log_file);
 }
