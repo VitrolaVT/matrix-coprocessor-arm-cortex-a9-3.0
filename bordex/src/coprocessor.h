@@ -23,6 +23,7 @@
 #define DET 0b100
 #define TRANS 0b101
 #define OPP 0b110
+#define CONV 0b111
 
 // protótipo das funções de interface
 void start_program(void);
@@ -38,12 +39,13 @@ int signal_overflow(void);
 void exit_program(void);
 
 // protótipo das funções do coprocessador
-int8_t soma(int8_t* matrizA, int8_t* matrizB, int8_t* res);
-int8_t subt(int8_t* matrizA, int8_t* matrizB, int8_t* res);
-int8_t multm(int8_t* matrizA, int8_t* matrizB, int8_t* res);
-int8_t multi(int8_t* matrizA, int8_t* matrizB, int8_t* res);
-int8_t detm(int8_t* matrizA, int size, int8_t* res);
-int8_t transm(int8_t* matrizA, int8_t* res);
-int8_t oppm(int8_t* matrizA, int8_t* res);
+void soma(int8_t* matrizA, int8_t* matrizB, int8_t* res);
+void subt(int8_t* matrizA, int8_t* matrizB, int8_t* res);
+void multm(int8_t* matrizA, int8_t* matrizB, int8_t* res);
+void multi(int8_t* matrizA, int8_t* matrizB, int8_t* res);
+void detm(int8_t* matrizA, int size, int8_t* res);
+void transm(int8_t* matrizA, int8_t* res);
+void oppm(int8_t* matrizA, int8_t* res);
+void conv(int8_t* matrizA, int8_t* matrizB, int8_t* res);
 
 #endif
