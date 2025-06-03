@@ -8,7 +8,7 @@
 
 // funcao que adiciona o erro
 void registrarErro(Erro erro) {
-    FILE *log_file = fopen("bordex/log.txt", "a"); // 'a' para append (adicionar ao final)
+    FILE *log_file = fopen("../log.txt", "a"); // 'a' para append (adicionar ao final)
     
     if (log_file == NULL) {
         printf("Erro ao abrir arquivo de log!\n");
@@ -25,12 +25,12 @@ void registrarErro(Erro erro) {
 
 int preprocess (char* nomeImg, int8_t** pixels, unsigned char** cabec, int** offsetOut, int**rowSizeOut){
     //inicializa o arquivo de log (cria novo ou limpa existente)
-    //FILE *log_init = fopen("log.txt", "w");
-    //if (log_init) fclose(log_init);
+    FILE *log_init = fopen("../log.txt", "w");
+    if (log_init) fclose(log_init);
 
     FILE* sample; // ponteiro para os dados do arquivo
     // primeiro, abre o arquivo em sample
-    const char* prefixo = "bordex/img/sample/";
+    const char* prefixo = "../img/sample/";
     const char* sufixo = ".bmp";
     char caminho[150];
 
@@ -183,16 +183,16 @@ int preprocess (char* nomeImg, int8_t** pixels, unsigned char** cabec, int** off
     // cria arquivo de saída
     FILE* saida;
 
-    saida = fopen("bordex/img/output/preprocessed.bmp", "wb");
+    saida = fopen("../img/output/preprocessed.bmp", "wb");
 
     if(saida == NULL){
         Erro erro3 = {
-            .codigo = 2,
+            .codigo = 8,
             .mensagem = "Imagem não foi criada.",
             .timestamp = time(NULL)
         };
         registrarErro(erro3);
-        printf("Erro 2. Imagem não foi criada.\n");
+        printf("Erro 8. Imagem não foi criada.\n");
         fclose(saida);
         return 1;
     }
