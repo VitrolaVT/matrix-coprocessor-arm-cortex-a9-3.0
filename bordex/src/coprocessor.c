@@ -45,11 +45,13 @@ void oppm(int8_t* matrizA, int8_t* res){
 void conv(int8_t* matrizA, int8_t* filtroX, int8_t* filtroY, uint8_t* res){
     // definição de variáveis
     int soma_X, soma_Y, i, elemento;
+
+    // aloca espaço para matrizes temporárias
     int8_t tempMX[25];
     int8_t tempMY[25];
 
     // inicializa res com 0s
-    memset(res, 0, 25 * sizeof(int8_t));
+    (*res) = (uint8_t)0;
 
     // realiza produto e soma
     multConv(matrizA, filtroX, tempMX);
