@@ -48,4 +48,7 @@ void transm(int8_t* matrizA, int8_t* res);
 void oppm(int8_t* matrizA, int8_t* res);
 void conv(int8_t* matrizA, int8_t* matrizB, int8_t* res);
 
+// operações intermediárias
+int8_t multConv(int8_t* matrizA, int8_t* matrizB, int8_t* res);
+
 #endif
