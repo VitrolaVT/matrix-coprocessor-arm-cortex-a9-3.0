@@ -2,9 +2,23 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int main(){
-    
-    return 0;
+int operate_buffer_receive(int opcode, int size, int position, int8_t* matrizA, int8_t* matrizB, int8_t* matrizC, uint8_t* matrizres){
+    int i;
+    int8_t mA[25];
+    int8_t mB[25];
+    int8_t mC[25];
+
+    for (i = 0; i < 13; i++){
+        mA[i] = matrizA[i];
+        mB[i] = matrizB[i];
+        mC[i] = matrizC[i];
+
+        switch (opcode){
+            case (CONV):
+                conv(matrizA, matrizB, matrizC, matrizres);
+                break;
+        }
+    }
 }
 
 void soma(int8_t* matrizA, int8_t* matrizB, int8_t* res){

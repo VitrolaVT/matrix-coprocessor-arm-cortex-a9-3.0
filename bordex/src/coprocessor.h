@@ -28,7 +28,7 @@
 // protótipo das funções de interface
 void start_program(void);
 
-int operate_buffer_send(int opcode, int size, int position, int8_t* matriz);
+int operate_buffer_send(int opcode, int size, int position, int8_t* matrizA, int8_t* matrizB, int8_t* matrizC, uint8_t* matrizres);
 
 int calculate_matriz(int opcode, int size, int position);
 
