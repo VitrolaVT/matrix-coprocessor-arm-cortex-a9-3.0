@@ -1,20 +1,9 @@
-#include <coprocessor.h>
-
-const int8_t SOBEL_X[25] = {
-     0,  0,  0,  0,  0,
-     0, -1,  0,  1,  0,
-     0, -2,  0,  2,  0,
-     0, -1,  0,  1,  0,
-     0,  0,  0,  0,  0
-};
-
-const int8_t SOBEL_Y[25] = {
-     0,  0,   0,  0,  0,
-     0, -1,  -2, -1,  0,
-     0,  0,   0,  0,  0,
-     0,  1,   2,  1,  0,
-     0,  0,   0,  0,  0
-};
+#include "coprocessor.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+#include "preprocessing.h"
 
 #define WIDTH 320
 #define HEIGHT 240
@@ -29,6 +18,23 @@ int main(){
     int8_t finalImg[WIDTH * HEIGHT];
     int8_t img_section[25];
     int8_t novoElemento;
+
+    // declaração dos filtros
+    int8_t SOBEL_X[25] = {
+     0,  0,  0,  0,  0,
+     0, -1,  0,  1,  0,
+     0, -2,  0,  2,  0,
+     0, -1,  0,  1,  0,
+     0,  0,  0,  0,  0
+    };
+
+    int8_t SOBEL_Y[25] = {
+        0,  0,   0,  0,  0,
+        0, -1,  -2, -1,  0,
+        0,  0,   0,  0,  0,
+        0,  1,   2,  1,  0,
+        0,  0,   0,  0,  0
+    };
 
     // declaração de espaços para os pixels da imagem e cabeçalho para o retorno
     int8_t* dadosPixels;
@@ -79,7 +85,7 @@ int main(){
         }
 
         // envia para operação de convolução
-        operate_buffer_send(opcode, 3, 0, img_section, SOBEL_X, SOBEL_Y, &novoElemento);
+        operate_buffer_receive(opcode, 3, 0, img_section, SOBEL_X, SOBEL_Y, &novoElemento);
         finalImg[i] = novoElemento;
     }
 
@@ -90,7 +96,7 @@ int main(){
 
     // salva imagem com filtro
     // cabeçalho
-    fwrite(dadosCabec, sizeof(unsigned char), offset, saida);
+    fwrite(dadosCabec, sizeof(unsigned char), (*offset), saida);
 
     for (i = 0; i < HEIGHT; i++) {
         memcpy(&finalImg[i * (*rowSize)], &finalImg[(HEIGHT - 1 - i) * (*rowSize)], (*rowSize));

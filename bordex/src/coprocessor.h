@@ -28,11 +28,11 @@
 // protótipo das funções de interface
 void start_program(void);
 
-int operate_buffer_send(int opcode, int size, int position, int8_t* matrizA, int8_t* matrizB, int8_t* matrizC, uint8_t* matrizres);
+int operate_buffer_receive(int opcode, int size, int position, int8_t* matrizA, int8_t* matrizB, int8_t* matrizC, uint8_t* matrizres);
 
 int calculate_matriz(int opcode, int size, int position);
 
-int operate_buffer_receive(int opcode, int size, int position, int8_t* matriz);
+int operate_buffer_send(int opcode, int size, int position, int8_t* matriz);
 
 int signal_overflow(void);
 
@@ -46,7 +46,7 @@ void multi(int8_t* matrizA, int8_t* matrizB, int8_t* res);
 void detm(int8_t* matrizA, int size, int8_t* res);
 void transm(int8_t* matrizA, int8_t* res);
 void oppm(int8_t* matrizA, int8_t* res);
-void conv(int8_t* matrizA, int8_t* matrizB, int8_t* res);
+void conv(int8_t* matrizA, int8_t* matrizB, int8_t* matrizC, uint8_t* res);
 
 // operações intermediárias
 int8_t multConv(int8_t* matrizA, int8_t* matrizB, int8_t* res);

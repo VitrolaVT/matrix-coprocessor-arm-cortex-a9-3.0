@@ -1,6 +1,7 @@
-#include <coprocessor.h>
+#include "coprocessor.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 int operate_buffer_receive(int opcode, int size, int position, int8_t* matrizA, int8_t* matrizB, int8_t* matrizC, uint8_t* matrizres){
     int i;
