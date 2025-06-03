@@ -14,7 +14,7 @@ typedef struct {
 
 void registrarErro(Erro erro);
 
-int preprocess (char* nomeImg, int8_t** pixels, unsigned char** cabec){
+int preprocess (char* nomeImg, int8_t** pixels, unsigned char** cabec, int** offsetOut, int**rowSizeOut){
     //inicializa o arquivo de log (cria novo ou limpa existente)
     FILE *log_init = fopen("log.txt", "w");
     if (log_init) fclose(log_init);
@@ -203,6 +203,8 @@ int preprocess (char* nomeImg, int8_t** pixels, unsigned char** cabec){
     *pixels = (int8_t*)invertedData;
     *cabec = malloc(offset);
     memcpy(*cabec, header, offset);
+    *offsetOut = &offset;
+    *rowSizeOut = &rowSize;
 
     free(invertedData);
 
