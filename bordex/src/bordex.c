@@ -169,34 +169,8 @@ int main(){
         }
     }
 
-    // finalImg tá em ordem top-down, então se inverte
-
-    uint8_t* final_output_for_bmp = malloc((rowSize) * HEIGHT);
-    if (final_output_for_bmp == NULL) {
-        Erro erro_mem = {
-            .codigo = 12,
-            .mensagem = "Falha na alocação de memória para imagem de saída.",
-            .timestamp = time(NULL)
-        };
-        registrarErro(erro_mem);
-        free(dadosPixels);
-        free(dadosCabec);
-        free(output_24bit_img);
-        return 1;
-    }
-
-    for (i = 0; i < HEIGHT; i++) {
-        memcpy(&final_output_for_bmp[i * (rowSize)], &output_24bit_img[(HEIGHT - 1 - i) * (rowSize)], (rowSize));
-    }
-
-    // escrevendo a imagem final no arquivo
-    fwrite(final_output_for_bmp, sizeof(unsigned char), (rowSize)*HEIGHT, saida);
-
-    // libera a memória alocada para output_24bit_img e final_output_for_bmp
-    free(output_24bit_img);
-    free(final_output_for_bmp);
-
-    //fwrite(finalImg, sizeof(unsigned char), WIDTH * HEIGHT, saida);
+    // finalImg já tá em ordem bottom-up!! então não precisa inverter, só passar direto
+    fwrite(output_24bit_img, sizeof(unsigned char), (rowSize) * HEIGHT, saida);
 
     // libera memória para dadosPixels e cabec
     free (dadosPixels);
