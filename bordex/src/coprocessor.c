@@ -8,9 +8,7 @@ int operate_buffer_receive(int opcode, int size, int position, int8_t* matrizA, 
         case (CONV):
             conv(matrizA, matrizB, matrizC, matrizres);
             break;
-       
     }
-
     return 0;
 }
 
@@ -83,7 +81,7 @@ void conv(int8_t* matrizA, int8_t* filtroX, int8_t* filtroY, uint8_t* res){
     (*res) = (uint8_t)elemento;
 }
 
-int8_t multConv(int8_t* matrizA, int8_t* matrizB, int8_t* res){
+void multConv(int8_t* matrizA, int8_t* matrizB, int8_t* res){
     int i;
     // multiplica cada elemento pelo elemento da matrizB correspondente (filtro) com saturação
     for (i=0; i<25; i++){
