@@ -134,7 +134,7 @@ int main(){
     // cria arquivo de saída
     FILE* saida;
 
-    saida = fopen("../img/output/filtro1.bmp", "wb");
+    saida = fopen("../img/output/sobel.bmp", "wb");
 
     // salva imagem com filtro
     // cabeçalho
