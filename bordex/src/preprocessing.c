@@ -12,6 +12,8 @@ void registrarErro(Erro erro) {
     
     if (log_file == NULL) {
         printf("Erro ao abrir arquivo de log!\n");
+    } else{
+        printf("Erro %d. \n", erro.codigo);
     }
 
     // Converte o timestamp para formato legível
