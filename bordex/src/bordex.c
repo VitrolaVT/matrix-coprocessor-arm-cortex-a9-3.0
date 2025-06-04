@@ -18,7 +18,7 @@ int main(){
     int8_t img[WIDTH * HEIGHT];
     uint8_t finalImg[WIDTH * HEIGHT];
     int8_t img_section[25];
-    int8_t novoElemento;
+    uint8_t novoElemento;
 
     // declaração dos filtros
     int8_t SOBEL_X[25] = {
@@ -38,13 +38,12 @@ int main(){
     };
 
     // declaração de espaços para os pixels da imagem e cabeçalho para o retorno
-    uint8_t* dadosPixels;
+    int8_t* dadosPixels;
     unsigned char* dadosCabec;
-    int* offset;
-    int* rowSize;
-    dadosPixels = malloc(sizeof(int));
-    dadosCabec = malloc(sizeof(int));
-    offset = NULL;
+    int offset;
+    int rowSize;
+    dadosPixels = NULL;
+    dadosCabec = NULL;
 
     // pega a imagem e realiza preprocessamento
     preprocess ("1", &dadosPixels, &dadosCabec, &offset, &rowSize); // 1.bmp é o nome da imagem
@@ -119,11 +118,11 @@ int main(){
 
     // salva imagem com filtro
     // cabeçalho
-    fwrite(dadosCabec, sizeof(unsigned char), (*offset), saida);
+    fwrite(dadosCabec, sizeof(unsigned char), (offset), saida);
     
     // novo código que coloca imagem com filtro no arquivo
     // alocando uma imagem temporária de 24 bits para escrita
-    uint8_t* output_24bit_img = malloc((*rowSize) * HEIGHT);
+    uint8_t* output_24bit_img = malloc((rowSize) * HEIGHT);
     if (output_24bit_img == NULL) {
         Erro erro_mem = {
             .codigo = 11,
@@ -140,19 +139,19 @@ int main(){
     for (linha = 0; linha < HEIGHT; linha++) {
         for (coluna = 0; coluna < WIDTH; coluna++) {
             uint8_t pixel_val = finalImg[linha * WIDTH + coluna];
-            output_24bit_img[linha * (*rowSize) + coluna * 3 + 0] = pixel_val; // Blue
-            output_24bit_img[linha * (*rowSize) + coluna * 3 + 1] = pixel_val; // Green
-            output_24bit_img[linha * (*rowSize) + coluna * 3 + 2] = pixel_val; // Red
+            output_24bit_img[linha * (rowSize) + coluna * 3 + 0] = pixel_val; // Blue
+            output_24bit_img[linha * (rowSize) + coluna * 3 + 1] = pixel_val; // Green
+            output_24bit_img[linha * (rowSize) + coluna * 3 + 2] = pixel_val; // Red
         }
         // adiciona padding, se houver
-        for (int p = WIDTH * 3; p < (*rowSize); p++) {
-            output_24bit_img[linha * (*rowSize) + p] = 0;
+        for (int p = WIDTH * 3; p < (rowSize); p++) {
+            output_24bit_img[linha * (rowSize) + p] = 0;
         }
     }
 
     // finalImg tá em ordem top-down, então se inverte
 
-    uint8_t* final_output_for_bmp = malloc((*rowSize) * HEIGHT);
+    uint8_t* final_output_for_bmp = malloc((rowSize) * HEIGHT);
     if (final_output_for_bmp == NULL) {
         Erro erro_mem = {
             .codigo = 12,
@@ -168,11 +167,11 @@ int main(){
     }
 
     for (i = 0; i < HEIGHT; i++) {
-        memcpy(&final_output_for_bmp[i * (*rowSize)], &output_24bit_img[(HEIGHT - 1 - i) * (*rowSize)], (*rowSize));
+        memcpy(&final_output_for_bmp[i * (rowSize)], &output_24bit_img[(HEIGHT - 1 - i) * (rowSize)], (rowSize));
     }
 
     // escrevendo a imagem final no arquivo
-    fwrite(final_output_for_bmp, sizeof(unsigned char), (*rowSize)*HEIGHT, saida);
+    fwrite(final_output_for_bmp, sizeof(unsigned char), (rowSize)*HEIGHT, saida);
 
     // libera a memória alocada para output_24bit_img e final_output_for_bmp
     free(output_24bit_img);

@@ -25,7 +25,7 @@ void registrarErro(Erro erro) {
     fclose(log_file);
 }
 
-int preprocess (char* nomeImg, int8_t** pixels, unsigned char** cabec, int** offsetOut, int**rowSizeOut){
+int preprocess (char* nomeImg, int8_t** pixels, unsigned char** cabec, int* offsetOut, int* rowSizeOut){
     //inicializa o arquivo de log (cria novo ou limpa existente)
     FILE *log_init = fopen("../log.txt", "w");
     if (log_init) fclose(log_init);
@@ -214,8 +214,19 @@ int preprocess (char* nomeImg, int8_t** pixels, unsigned char** cabec, int** off
     *pixels = (int8_t*)invertedData;
     *cabec = malloc(offset);
     memcpy(*cabec, header, offset);
-    *offsetOut = &offset;
-    *rowSizeOut = &rowSize;
+    *offsetOut = offset;
+    *rowSizeOut = rowSize;
+
+    *pixels = (int8_t*)malloc(imgSize * sizeof(unsigned char)); // ou sizeof(int8_t)
+    if (*pixels == NULL) {
+        // tratar erro de alocação, registrar e retornar um código de erro
+        free(header);
+        free(invertedData);
+        Erro erro_mem = { .codigo = 12, .mensagem = "Falha na alocação de memória para pixels em preprocess.", .timestamp = time(NULL) };
+        registrarErro(erro_mem);
+        return 1;
+    }
+    memcpy(*pixels, invertedData, imgSize);
 
     free(invertedData);
 
