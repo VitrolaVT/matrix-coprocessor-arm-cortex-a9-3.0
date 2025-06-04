@@ -69,8 +69,28 @@ int main(){
     }
 
     // itera por todos os pixels
-    for(i = 0; i < WIDTH * HEIGHT; i++){
-        img[i] = dadosPixels[i];
+    //for(i = 0; i < WIDTH * HEIGHT; i++){
+    //    img[i] = dadosPixels[i];
+    //}
+    // bytesPixel é implicitamente 3 para uma imagem de 24 bits.
+    int bytesPerPixel_original = 3; // Para imagem de 24 bits
+    int current_pixel_img = 0;
+    for (linha = 0; linha < HEIGHT; linha++) {
+        for (coluna = 0; coluna < WIDTH; coluna++) {
+            // calcula o índice do componente Azul (primeiro byte) do pixel em dadosPixels
+            int index_in_dadosPixels = linha * rowSize + coluna * bytesPerPixel_original;
+
+            // verifica se o índice está dentro dos limites de dadosPixels
+            // (rowSize * HEIGHT) é o tamanho total de dadosPixels
+            if (index_in_dadosPixels < (rowSize * HEIGHT)) {
+                 // o valor em dadosPixels é unsigned char (0-255) a img, int8_t
+                img[current_pixel_img] = dadosPixels[index_in_dadosPixels];
+            } else {
+                // se indice fora dos limites, preenche com 0 (just in case ne)
+                img[current_pixel_img] = 0;
+            }
+            current_pixel_img++;
+        }
     }
 
     opcode = CONV;
@@ -162,7 +182,6 @@ int main(){
         free(dadosPixels);
         free(dadosCabec);
         free(output_24bit_img);
-        // ...
         return 1;
     }
 
