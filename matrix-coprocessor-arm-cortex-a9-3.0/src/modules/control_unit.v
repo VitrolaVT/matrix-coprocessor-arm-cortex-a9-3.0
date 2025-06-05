@@ -29,6 +29,9 @@ module control_unit(
 	localparam STORE_MATRIX1 = 4'b0111;
 	localparam STORE_MATRIX2 = 4'b1000;
 	localparam LOAD_MATRIXR = 4'b1001;
+	localparam CONVOLUTION_TRANS = 4'b1010;
+	localparam CONVOLUTION_ROBERTS = 4'b1011;
+
 	
 	//Definição dos códigos das posições dos registradores de dados
 	localparam OFFSET0 = 4'b0000;
@@ -134,6 +137,43 @@ module control_unit(
 	opp_M oppL4(matrix1_reg[79:40], rst, opp_result4, opp_ovf4);
 	opp_M oppL5(matrix1_reg[39:0], rst, opp_result5, opp_ovf5);
 	
+	//Modulo da operaçao de convoluçao que usa transposta(Sobel, Prewitt e Laplaciano)
+	convolution_trans convolution_trans(
+	.start(start_convo_trans),
+	.clk(clk), 
+	.rst(rst),
+	.ready(ready_convo_trans),
+	.matrizA(matrix1_reg),
+	.matrizB(matrix2_reg),
+	.sum_resultX(convo_trans_resultX),
+	.sum_resultY(convo_trans_resultY),
+	.ovf(convo_trans_ovf)
+	);
+	
+	reg start_convo_trans; //Sinal de start do modulo de convulaçao
+	wire ready_convo_trans; //Sinal de pronto do modulo de convulaçao
+	wire [7:0] convo_trans_resultX; //Resultado do eixo X
+	wire [7:0] convo_trans_resultY; //Resultado do eixo Y
+	wire convo_trans_ovf; //Overflow da convulaçao
+	
+	//Modulo da operaçao de convoluçao para filtro Roberts)
+	convolution_roberts convolution_roberts(
+	.start(start_convo_ro),
+	.clk(clk), 
+	.rst(rst),
+	.ready(ready_convo_ro),
+	.matrizA({matrix1_reg[199:184], matrix1_reg[159:144]}),
+	.matrizB({matrix2_reg[199:184], matrix2_reg[159:144]}),
+	.sum_resultX(convo_ro_resultX),
+	.sum_resultY(convo_ro_resultY),
+	.ovf(convo_ro_ovf)
+	);
+	
+	reg start_convo_ro; //Sinal de start do modulo de convulaçao
+	wire ready_convo_ro; //Sinal de pronto do modulo de convulaçao
+	wire [7:0] convo_ro_resultX; //Resultado do eixo X
+	wire [7:0] convo_ro_resultY; //Resultado do eixo Y
+	wire convo_ro_ovf; //Overflow da convulaçao
 	
 	//Transposiçao da matriz
 	always @(*) begin
@@ -219,7 +259,21 @@ module control_unit(
 				
 				//Estado de decodificação do buffer
 				DECODE: begin
+					if (opcode_reg == CONVOLUTION_TRANS) begin
+						start_convo_trans = 1;
+					end
+					else begin
+						start_convo_trans = 0;
+					end
 					
+					if (opcode_reg == CONVOLUTION_ROBERTS) begin
+						start_convo_ro = 1;
+					end
+					else begin
+						start_convo_ro = 0;
+					end
+					
+					ready = 0;
 					state = EXECUTE;
 				end
 				
@@ -466,12 +520,45 @@ module control_unit(
 								
 						end
 						
+						CONVOLUTION_TRANS: begin
+							result_reg[199:192] = convo_trans_resultX;
+							result_reg[191:184] = convo_trans_resultY;
+							result_reg[183:0] = 0;
+							overflow = convo_trans_ovf;
+						end
+						
+						CONVOLUTION_ROBERTS: begin
+							result_reg[199:192] = convo_ro_resultX;
+							result_reg[191:184] = convo_ro_resultY;
+							result_reg[183:0] = 0;
+							overflow = convo_ro_ovf;
+						end
+						
 						default: begin
 							state = IDLE;
 						end
 					endcase
 					
-					state = WRITEBACK;
+					if (opcode_reg == CONVOLUTION_TRANS && ready_convo_trans) begin
+						state = WRITEBACK;
+					end
+					else if (opcode_reg == CONVOLUTION_TRANS && ready_convo_trans) begin
+						state = EXECUTE;
+					end
+					
+					
+					else if (opcode_reg == CONVOLUTION_ROBERTS && ready_convo_ro) begin
+						state = WRITEBACK;
+					end
+					else if (opcode_reg == CONVOLUTION_ROBERTS && ready_convo_ro) begin
+						state = EXECUTE;
+					end
+					
+					
+					else begin
+						state = WRITEBACK;
+					end
+					
 				end
 				
 				//Estado de sáida dos dados para o buffer principal
