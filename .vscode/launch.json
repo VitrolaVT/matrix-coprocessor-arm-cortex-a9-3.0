@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": ".",
-      "program": "build/Debug/outDebug",
+      "cwd": "c:/Users/Rian S/Documents/ECOMP/TEC499 - Sistemas Digitais/PBL 2/matrix-coprocessor-arm-cortex-a9-2.0/src",
+      "program": "c:/Users/Rian S/Documents/ECOMP/TEC499 - Sistemas Digitais/PBL 2/matrix-coprocessor-arm-cortex-a9-2.0/src/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
