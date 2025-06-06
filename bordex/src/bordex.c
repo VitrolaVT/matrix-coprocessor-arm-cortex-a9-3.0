@@ -238,7 +238,7 @@ void sobel3(img* img){
             int flagResult = operate_buffer_receive(loadMatrixResult, 1, 0, temp_pos);
 
             // cálculo o módulo das duas somas
-            newElement = round(sqrt(pow(resultado[0], 2)+pow(resultado[1], 2)));
+            newElement = round(sqrt(pow(resultado[0] * 2, 2)+pow(resultado[1] * 2, 2)));
             if(newElement > 255) newElement = 255;
 
             // reescrevendo em 3 canais
