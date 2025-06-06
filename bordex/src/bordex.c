@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-//#include "matriksLib.h"
+#include "lib\matriksLib.h"
 #include <math.h> // necessario pro calculo de matrizes
 
 #define storeMatrixA 0b0111
@@ -238,7 +238,7 @@ void sobel3(img* img){
             new_imgData[index + 1] = (uint8_t)newElement;
             new_imgData[index + 2] = (uint8_t)newElement;
 
-            // faz convolucao
+            /*// faz convolucao
             sumX = sumY = 0; // soma na convolução para o eixo x e eixo y
             for (k = 0; k < 25; k++){
                 //calcula para o eixo X
@@ -264,7 +264,7 @@ void sobel3(img* img){
                 else{
                     sumY+= (int8_t)tempConvRes*2;
                 }
-            }
+            }*/
         }
     }
 
