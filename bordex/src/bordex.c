@@ -39,9 +39,10 @@ int main(){
     // pré-processamento do arquivo
     // cria imagem
     img img;
-    preprocess("6", &img);
-    sobel3(&img);
+    preprocess("1", &img);
     saveImg("preprocessed", &img);
+    sobel3(&img);
+    saveImg("sobel3", &img);
     
     return 0;
 }
@@ -144,8 +145,15 @@ void preprocess(char* nomeImg, img* image){
 
 void saveImg(char* fileName, img* img){
     FILE* saida;
-    // cria arquivo de saída
-    saida = fopen("../img/output/sobel3.bmp", "wb");
+
+    // primeiro, abre o arquivo em sample
+    const char* prefixo = "../img/output/";
+    const char* sufixo = ".bmp";
+    char caminho[150];
+
+    // pega o nome do arquivo com base no argumento
+    snprintf(caminho, sizeof(caminho), "%s%s%s", prefixo, fileName, sufixo);
+    saida = fopen(caminho, "rb");
     
     // cabecalho
     fwrite(img->header, sizeof(unsigned char), img->offset, saida);
