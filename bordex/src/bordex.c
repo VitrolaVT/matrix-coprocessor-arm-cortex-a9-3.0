@@ -238,9 +238,34 @@ void sobel3(img* img){
             new_imgData[index + 1] = (uint8_t)newElement;
             new_imgData[index + 2] = (uint8_t)newElement;
 
-        }
+            // faz convolucao
+            sumX = sumY = 0; // soma na convolução para o eixo x e eixo y
+            for (k = 0; k < 25; k++){
+                //calcula para o eixo X
+                tempConvRes = tempM[k] * SOBEL_X[k];
+                if(tempConvRes > 127){
+                    sumX+= (int8_t)127*2;
+                }
+                else if(tempConvRes < -128){
+                    sumX+= (int8_t)(-128)*2;
+                }
+                else{
+                    sumX+= (int8_t)tempConvRes*2;
+                }
 
-        
+                //calcula para o eixo Y
+                tempConvRes = tempM[k] * SOBEL_Y[k];
+                if(tempConvRes > 127){
+                    sumY+= (int8_t)127*2;
+                }
+                else if(tempConvRes < -128){
+                    sumY+= (int8_t)(-128)*2;
+                }
+                else{
+                    sumY+= (int8_t)tempConvRes*2;
+                }
+            }
+        }
     }
 
     img->data=new_imgData;
