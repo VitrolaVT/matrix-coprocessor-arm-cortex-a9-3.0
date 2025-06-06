@@ -1,180 +1,247 @@
-#include "coprocessor.h"
+// código refatorado, a começar por uma struct para imagem
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include "preprocessing.h"
-#include <time.h>
+//#include "matriksLib.h"
+#include <math.h> // necessario pro calculo de matrizes
+
+#define storeMatrixA 0b0111
+#define storeMatrixB 0b1000
+#define loadMatrixResult 0b1001
+#define CONV 0b1010
 
 #define WIDTH 320
 #define HEIGHT 240
 
-int main(){
-    // declaração de variáveis
-    int opcode, i, linha, coluna,
-    linha_central, coluna_central, 
-    linha_offset, linha_vizinha, coluna_offset, 
-    coluna_vizinha, indiceVizinho, posicaoNaJanela;
-    int8_t img[WIDTH * HEIGHT];
-    uint8_t finalImg[WIDTH * HEIGHT];
-    int8_t img_section[25];
-    uint8_t novoElemento;
-
-    // declaração dos filtros
-    int8_t SOBEL_X[25] = {
-     0,  0,  0,  0,  0,
-     0, -1,  0,  1,  0,
-     0, -2,  0,  2,  0,
-     0, -1,  0,  1,  0,
-     0,  0,  0,  0,  0
-    };
-
-    int8_t SOBEL_Y[25] = {
-        0,  0,   0,  0,  0,
-        0, -1,  -2, -1,  0,
-        0,  0,   0,  0,  0,
-        0,  1,   2,  1,  0,
-        0,  0,   0,  0,  0
-    };
-
-    // declaração de espaços para os pixels da imagem e cabeçalho para o retorno
-    int8_t* dadosPixels;
-    unsigned char* dadosCabec;
+// define a struct para imagem
+typedef struct{
+    int width; // pixels da largura
+    int height; // pixels da altura
+    int depth; // profundidade (bits) de cada pixel
     int offset;
+    int size;
     int rowSize;
-    dadosPixels = NULL;
-    dadosCabec = NULL;
+    unsigned char* header;
+    unsigned char* data;
+}img;
 
-    // pega a imagem e realiza preprocessamento
-    preprocess ("1", &dadosPixels, &dadosCabec, &offset, &rowSize); // 1.bmp é o nome da imagem
+// img bmp para preto e branco
+void preprocess(char* nomeImg, img* rowSizeOut);
+// salva bmp
+void saveImg(char* fileName, img* img);
+// filtro para teste com C
+void sobel3(img* img);
 
-    if(dadosPixels == NULL){
-        Erro erro9 = {
-            .codigo = 9,
-            .mensagem = "Pré-processamento falhou. Dados da imagem não obtidos.",
-            .timestamp = time(NULL)
-        };
-        registrarErro(erro9);
-        return 1;
-    }
-
-    else if(dadosCabec == NULL){
-        Erro erro10 = {
-            .codigo = 10,
-            .mensagem = "Pré-processamento falhou. Dados do cabeçalho não obtidos.",
-            .timestamp = time(NULL)
-        };
-        registrarErro(erro10);
-        return 1;
-    }
-
-    // itera por todos os pixels
-    //for(i = 0; i < WIDTH * HEIGHT; i++){
-    //    img[i] = dadosPixels[i];
-    //}
-    // bytesPixel é implicitamente 3 para uma imagem de 24 bits.
-    int bytesPerPixel_original = 3; // Para imagem de 24 bits
-    int current_pixel_img = 0;
-    for (linha = 0; linha < HEIGHT; linha++) {
-        for (coluna = 0; coluna < WIDTH; coluna++) {
-            // calcula o índice do componente Azul (primeiro byte) do pixel em dadosPixels
-            int index_in_dadosPixels = linha * rowSize + coluna * bytesPerPixel_original;
-
-            // verifica se o índice está dentro dos limites de dadosPixels
-            // (rowSize * HEIGHT) é o tamanho total de dadosPixels
-            if (index_in_dadosPixels < (rowSize * HEIGHT)) {
-                 // o valor em dadosPixels é unsigned char (0-255) a img, int8_t
-                img[current_pixel_img] = dadosPixels[index_in_dadosPixels];
-            } else {
-                // se indice fora dos limites, preenche com 0 (just in case ne)
-                img[current_pixel_img] = 0;
-            }
-            current_pixel_img++;
-        }
-    }
-
-    opcode = CONV;
+int main(){
+    start_program(); // mapeia memória
     
-    for (i = 0; i < WIDTH * HEIGHT; i++) {
-        // envia pequenas seções de 5x5 para utilizar o filtro
-        linha_central = i / WIDTH;
-        coluna_central = i % WIDTH;
-
-        posicaoNaJanela = 0;
-
-        // percorre as 5 linhas da janela
-        for (linha_offset = -2; linha_offset <= 2; linha_offset++) {
-            linha_vizinha = linha_central + linha_offset;
-
-            // percorre as 5 colunas da janela
-            for (coluna_offset = -2; coluna_offset <= 2; coluna_offset++) {
-                coluna_vizinha = coluna_central + coluna_offset;
-
-                // verifica se a posição vizinha tá dentro da imagem
-                if (linha_vizinha >= 0 && linha_vizinha < HEIGHT &&
-                    coluna_vizinha >= 0 && coluna_vizinha < WIDTH) {
-                    
-                    // converte o indice para o array unidim ao inves de considerar uma matriz
-                    indiceVizinho = linha_vizinha * WIDTH + coluna_vizinha;
-                    img_section[posicaoNaJanela] = img[indiceVizinho];
-                } else {
-                    // se for fora da imagem, preenche com 0
-                    img_section[posicaoNaJanela] = 0;
-                }
-
-                posicaoNaJanela++;
-            }
-        }
-
-        // envia para operação de convolução
-        operate_buffer_receive(opcode, 3, 0, img_section, SOBEL_X, SOBEL_Y, &novoElemento);
-        finalImg[i] = novoElemento;
-    }
-
-    // cria arquivo de saída
-    FILE* saida;
-
-    saida = fopen("../img/output/sobel.bmp", "wb");
-
-    // salva imagem com filtro
-    // cabeçalho
-    fwrite(dadosCabec, sizeof(unsigned char), (offset), saida);
+    // pré-processamento do arquivo
+    // cria imagem
+    img img;
+    preprocess("6", &img);
+    sobel3(&img);
+    saveImg("preprocessed", &img);
     
-    // novo código que coloca imagem com filtro no arquivo
-    // alocando uma imagem temporária de 24 bits para escrita
-    uint8_t* output_24bit_img = malloc((rowSize) * HEIGHT);
-    if (output_24bit_img == NULL) {
-        Erro erro_mem = {
-            .codigo = 11,
-            .mensagem = "Falha na alocação de memória para imagem temporária de saída.",
-            .timestamp = time(NULL)
-        };
-        registrarErro(erro_mem);
-        free(dadosPixels);
-        free(dadosCabec);
-        return 1;
-    }
-
-    // convertendo a imagem de 8 bits (finalImg) para 24 bits (output_24bit_img) e lidando com o padding de linha
-    for (linha = 0; linha < HEIGHT; linha++) {
-        for (coluna = 0; coluna < WIDTH; coluna++) {
-            uint8_t pixel_val = finalImg[linha * WIDTH + coluna];
-            output_24bit_img[linha * (rowSize) + coluna * 3 + 0] = pixel_val; // Blue
-            output_24bit_img[linha * (rowSize) + coluna * 3 + 1] = pixel_val; // Green
-            output_24bit_img[linha * (rowSize) + coluna * 3 + 2] = pixel_val; // Red
-        }
-        // adiciona padding, se houver
-        for (int p = WIDTH * 3; p < (rowSize); p++) {
-            output_24bit_img[linha * (rowSize) + p] = 0;
-        }
-    }
-
-    // finalImg já tá em ordem bottom-up!! então não precisa inverter, só passar direto
-    fwrite(output_24bit_img, sizeof(unsigned char), (rowSize) * HEIGHT, saida);
-
-    // libera memória para dadosPixels e cabec
-    free (dadosPixels);
-    free (dadosCabec);
-
     return 0;
+}
+
+// função para o preprocessamento
+void preprocess(char* nomeImg, img* image){
+    FILE* sample; // ponteiro para os dados do arquivo
+    // primeiro, abre o arquivo em sample
+    const char* prefixo = "../img/sample/";
+    const char* sufixo = ".bmp";
+    char caminho[150];
+
+    // pega o nome do arquivo com base no argumento
+    snprintf(caminho, sizeof(caminho), "%s%s%s", prefixo, nomeImg, sufixo);
+    sample = fopen(caminho, "rb");
+
+    // informações da imagem
+    unsigned char tempHeader[14]; // 14 primeiros bytes
+    unsigned char* header;
+    unsigned char* imageData;
+    unsigned char* invertedData;
+    unsigned char* r;
+    unsigned char* g;
+    unsigned char* b;
+    int i, j, width, height, offset, rowSize, bytesPixel, imgSize, line, position, mean, row;
+    unsigned short depth;
+    unsigned int compression;
+    long file_size;
+
+    // leitura do arquivo para pegar o offset
+    fread(tempHeader, sizeof(unsigned char), 14, sample);
+
+    // verifica se sample é bmp
+    if(tempHeader[0] != 'B' || tempHeader[1] != 'M') {
+        printf("ERRO 1: Arquivo não é BMP.");}
+
+    // pega o valor do offset (dos valores da imagem)
+    memcpy(&offset, &tempHeader[10], sizeof(int));
+
+    // salva o cabeçalho (tudo antes dos dados)
+    header = malloc(offset * sizeof(unsigned char));
+    fseek(sample, 0, SEEK_SET); // define inicio do arquivo a partir do offset
+    fread(header, sizeof(unsigned char), offset, sample);
+
+    // coloca os valores de width, height, depth e compression nas vars respectivas
+    memcpy(&width, &header[18], sizeof(int));
+    memcpy(&height, &header[22], sizeof(int));
+    memcpy(&depth, &header[28], sizeof(unsigned short));
+    memcpy(&compression, &header[30], sizeof(unsigned int));
+
+    // realiza verificações
+    // se profundidade diferente de 24bits (mais de 3 canais)
+    if (depth != 24){
+        printf("ERRO 2: Profundidade não suportada.");
+    }
+
+    // se offset pequeno
+    if (offset < 54){
+        printf("ERRO 3: Tamanho de cabeçalho inválido.");
+    }
+
+    // coloca os valores de bytes por pixel, tamanho da imagem e tamanho da coluna
+    bytesPixel = depth/8;
+    rowSize = (width * bytesPixel + 3) & (~3); // tamanho de cada linha em bytes (incluindo o tal do padding la, preenchimento). 
+    imgSize = rowSize * height;
+
+    // coloca os dados dos pixels de sample num buffer
+    imageData = (unsigned char*)calloc(imgSize, sizeof(unsigned char));
+    fread(imageData, sizeof(unsigned char), imgSize, sample);
+
+    // fecha imagem
+    fclose(sample);
+    
+    // transforma imagem baseado nos canais b, g e r (nessa ordem)
+    // coloca em preto e branco
+    for (int i = 0; i < height; i++) {
+        row = height - i - 1;
+        for (int j = 0; j < width; j++) {
+            position = row * rowSize + j * bytesPixel;
+            b = &imageData[position + 0];
+            g = &imageData[position + 1];
+            r = &imageData[position + 2];
+            mean = (*r + *g + *b)/3; // todos os canais recebem a média dos valores - preto e branco
+            *r = mean;
+            *g = mean;
+            *b = mean;
+        }
+    }
+
+    // coloca dados em img (a struct)
+    image->width = width;
+    image->height = height;
+    image->depth = depth;
+    image->offset = offset;
+    image->size = imgSize;
+    image->rowSize = rowSize;
+    image->header = header;
+    image->data = imageData;
+}
+
+void saveImg(char* fileName, img* img){
+    FILE* saida;
+    // cria arquivo de saída
+    saida = fopen("../img/output/sobel3.bmp", "wb");
+    
+    // cabecalho
+    fwrite(img->header, sizeof(unsigned char), img->offset, saida);
+
+    // repassa dados
+    fwrite(img->data, sizeof(unsigned char), img->size, saida);
+
+    fclose(saida);
+}
+
+// funcao que realiza a aplicação do filtro detector de borda + simulação da convolução do coprocssador
+void sobel3(img* img){
+    unsigned char* new_imgData; // guarda novos dados da imagem
+    int16_t tempConvRes; // resultado temporário da convolução
+    int i, j, k, l, currentRow, index, nbRow, nbCol, nbIndex, sumX, sumY, newElement;
+    int8_t tempM[25] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    int8_t convX[25] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    int8_t convY[25] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    // aloca espaco para novos dados da imagem
+    new_imgData = (unsigned char*)calloc(img->size, sizeof(unsigned char));
+
+    // declara matrizes com os filtros
+    int8_t SOBEL_X[25] = {
+     -1,  0,  1,  0, 0,
+     -2,  0,  2,  0, 0,
+     -1,  0,  1,  0, 0,
+      0,  0,  0,  0, 0,
+      0,  0,  0,  0, 0
+    };
+    int8_t SOBEL_Y[25] = {
+        -1, -2,  -1,   0,  0,
+        0,   0,   0,   0,  0,
+        1,   2,   1,   0,  0,
+        0,   0,   0,   0,  0,
+        0,   0,   0,   0,  0
+    };
+
+    // loop para passar pelos dados e convoluciona
+    // esse for itera pela altura, começando de baixo (ja que é bottom-up)
+    for (i = 0; i < img->height; i++){
+        currentRow = img->height - i - 1;
+        // agora, itera pela linha
+        for (j = 0; j < img->width; j++){
+            index = currentRow * img->rowSize + j * ((img->depth )/8);
+
+            // preenche a matriz 5x5 considerando vizinhanças 3x3
+            for (k = -1; k < 2; k++){
+                for (l = -1; l < 2; l++){
+                    nbRow = i + k;
+                    nbCol = j + l;
+
+                    // ve se posições estão nos limites
+                    if(nbRow >= 0 && nbRow < img->height && nbCol >= 0 && nbCol < img->width){
+                        nbIndex = (img->height - nbRow - 1) * img->rowSize + nbCol * ((img->depth)/8);
+                        // realiza o calculo do indice considerando linha e coluna da matriz num array unidimensional
+                        tempM[((k + 1) * 5) + l + 1] = (img->data[nbIndex])/2;
+                    }
+                }
+            }
+
+            uint8_t *temp_pos = tempM;
+            // envia a matriz A
+            for (int b=0;b<13;b++){
+                int flagOK1 = operate_buffer_send(storeMatrixA, 1, b, temp_pos);
+                temp_pos += 2;
+            }
+
+            // envia o filtro (o SOBEL_X é calculado dentro do coprocessador)
+            temp_pos = SOBEL_X;
+            for (int g=0;g<13;g++){
+                int flagOK2 = operate_buffer_send(storeMatrixB, 1, g, temp_pos);
+                temp_pos += 2;
+            }
+
+            calculate_matriz(CONV, 1, 0); // envia sinal para iniciar op
+
+            int8_t resultado[4];
+
+            temp_pos = resultado;
+
+            // recebe apenas 2 números 
+            int flagResult = operate_buffer_receive(loadMatrixResult, 1, 0, temp_pos);
+
+            // cálculo o módulo das duas somas
+            newElement = round(sqrt(pow(resultado[0], 2)+pow(resultado[1], 2)));
+            if(newElement > 255) newElement = 255;
+
+            // reescrevendo em 3 canais
+            new_imgData[index] = (uint8_t)newElement;
+            new_imgData[index + 1] = (uint8_t)newElement;
+            new_imgData[index + 2] = (uint8_t)newElement;
+
+        }
+
+        
+    }
+
+    img->data=new_imgData;
 }
