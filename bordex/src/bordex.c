@@ -170,7 +170,7 @@ void saveImg(char* fileName, img* img){
     fclose(saida);
 }
 
-// funcao que realiza a aplicação do filtro detector de borda + simulação da convolução do coprocssador
+// funcao que realiza a aplicação do filtro de sobel usando 3x3
 void sobel3(img* img){
     unsigned char* new_imgData; // guarda novos dados da imagem
     int16_t tempConvRes; // resultado temporário da convolução
@@ -206,7 +206,8 @@ void sobel3(img* img){
                     if(nbRow >= 0 && nbRow < img->height && nbCol >= 0 && nbCol < img->width){
                         nbIndex = (img->height - nbRow - 1) * img->rowSize + nbCol * ((img->depth)/8);
                         // realiza o calculo do indice considerando linha e coluna da matriz num array unidimensional
-                        tempM[((k + 1) * 5) + l + 1] = (img->data[nbIndex])/4;
+                        tempM[((k + 1) * 5) + l + 1] = (img->data[nbIndex])/4; // divide-se por quatro para
+                                                                               // posteriormente multiplicar novamente
                     }
                 }
             }
@@ -235,6 +236,7 @@ void sobel3(img* img){
             int flagResult = operate_buffer_receive(loadMatrixResult, 1, 0, temp_pos);
 
             // cálculo o módulo das duas somas
+            // a multiplicação compensa a anterior divisão por 4 [(4 * somatorio)^2]
             newElement = round(sqrt(pow(resultado[0] * 4, 2)+pow(resultado[1] * 4, 2)));
             if(newElement > 255) newElement = 255;
 
@@ -249,7 +251,7 @@ void sobel3(img* img){
     img->data=new_imgData;
 }
 
-// funcao que realiza a aplicação do filtro detector de borda + simulação da convolução do coprocssador
+// funcao que realiza a aplicação do filtro de sobel usando 5x4
 void sobel5(img* img){
     unsigned char* new_imgData; // guarda novos dados da imagem
     int16_t tempConvRes; // resultado temporário da convolução
@@ -328,6 +330,7 @@ void sobel5(img* img){
     img->data=new_imgData;
 }
 
+// funcao que realiza a aplicação do filtro de prewitt
 void prewitt(img* img){
     unsigned char* new_imgData; // guarda novos dados da imagem
     int16_t tempConvRes; // resultado temporário da convolução
@@ -406,6 +409,7 @@ void prewitt(img* img){
 
 }
 
+// funcao que realiza a aplicação do filtro de laplace
 void laplacian(img* img){
     unsigned char* new_imgData; // guarda novos dados da imagem
     int16_t tempConvRes; // resultado temporário da convolução
