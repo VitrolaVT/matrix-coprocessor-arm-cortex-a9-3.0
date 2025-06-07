@@ -3,13 +3,14 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include "lib\matriksLib.h"
+#include "matriksLib.h"
 #include <math.h> // necessario pro calculo de matrizes
 
 #define storeMatrixA 0b0111
 #define storeMatrixB 0b1000
 #define loadMatrixResult 0b1001
 #define CONV 0b1010
+#define CONVRO 0b1011
 
 #define WIDTH 320
 #define HEIGHT 240
@@ -157,7 +158,7 @@ void saveImg(char* fileName, img* img){
 
     // pega o nome do arquivo com base no argumento
     snprintf(caminho, sizeof(caminho), "%s%s%s", prefixo, fileName, sufixo);
-    saida = fopen(caminho, "rb");
+    saida = fopen(caminho, "wb");
     
     // cabecalho
     fwrite(img->header, sizeof(unsigned char), img->offset, saida);
@@ -180,19 +181,12 @@ void sobel3(img* img){
     new_imgData = (unsigned char*)calloc(img->size, sizeof(unsigned char));
 
     // declara matrizes com os filtros
-    int8_t SOBEL_X[25] = {
-     -1,  0,  1,  0, 0,
-     -2,  0,  2,  0, 0,
-     -1,  0,  1,  0, 0,
-      0,  0,  0,  0, 0,
-      0,  0,  0,  0, 0
-    };
-    int8_t SOBEL_Y[25] = {
-        -1, -2,  -1,   0,  0,
-        0,   0,   0,   0,  0,
-        1,   2,   1,   0,  0,
-        0,   0,   0,   0,  0,
-        0,   0,   0,   0,  0
+    int8_t SOBEL_3[25] = {
+     -1,  0,  1,  0,  0,
+     -2,  0,  2,  0,  0,
+     -1,  0,  1,  0,  0,
+      0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0
     };
 
     // loop para passar pelos dados e convoluciona
@@ -213,7 +207,7 @@ void sobel3(img* img){
                     if(nbRow >= 0 && nbRow < img->height && nbCol >= 0 && nbCol < img->width){
                         nbIndex = (img->height - nbRow - 1) * img->rowSize + nbCol * ((img->depth)/8);
                         // realiza o calculo do indice considerando linha e coluna da matriz num array unidimensional
-                        tempM[((k + 1) * 5) + l + 1] = (img->data[nbIndex])/2;
+                        tempM[((k + 1) * 5) + l + 1] = (img->data[nbIndex])/4;
                     }
                 }
             }
@@ -226,7 +220,7 @@ void sobel3(img* img){
             }
 
             // envia o filtro (o SOBEL_X é calculado dentro do coprocessador)
-            temp_pos = SOBEL_X;
+            temp_pos = SOBEL_3;
             for (int g=0;g<13;g++){
                 int flagOK2 = operate_buffer_send(storeMatrixB, 1, g, temp_pos);
                 temp_pos += 2;
@@ -242,7 +236,7 @@ void sobel3(img* img){
             int flagResult = operate_buffer_receive(loadMatrixResult, 1, 0, temp_pos);
 
             // cálculo o módulo das duas somas
-            newElement = round(sqrt(pow(resultado[0] * 2, 2)+pow(resultado[1] * 2, 2)));
+            newElement = round(sqrt(pow(resultado[0] * 4, 2)+pow(resultado[1] * 4, 2)));
             if(newElement > 255) newElement = 255;
 
             // reescrevendo em 3 canais
@@ -250,33 +244,6 @@ void sobel3(img* img){
             new_imgData[index + 1] = (uint8_t)newElement;
             new_imgData[index + 2] = (uint8_t)newElement;
 
-            /*// faz convolucao
-            sumX = sumY = 0; // soma na convolução para o eixo x e eixo y
-            for (k = 0; k < 25; k++){
-                //calcula para o eixo X
-                tempConvRes = tempM[k] * SOBEL_X[k];
-                if(tempConvRes > 127){
-                    sumX+= (int8_t)127*2;
-                }
-                else if(tempConvRes < -128){
-                    sumX+= (int8_t)(-128)*2;
-                }
-                else{
-                    sumX+= (int8_t)tempConvRes*2;
-                }
-
-                //calcula para o eixo Y
-                tempConvRes = tempM[k] * SOBEL_Y[k];
-                if(tempConvRes > 127){
-                    sumY+= (int8_t)127*2;
-                }
-                else if(tempConvRes < -128){
-                    sumY+= (int8_t)(-128)*2;
-                }
-                else{
-                    sumY+= (int8_t)tempConvRes*2;
-                }
-            }*/
         }
     }
 
@@ -295,12 +262,12 @@ void sobel5(img* img){
     new_imgData = (unsigned char*)calloc(img->size, sizeof(unsigned char));
 
     // declara matrizes com os filtros
-    int8_t SOBEL_X[25] = {
-         2,    2,    4,    2,    2,
-         1,    1,    2,    1,    1,
-         0,    0,    0,    0,    0,
-        -1,   -1,   -2,   -1,   -1,
-        -2,   -2,   -4,   -2,   -2
+    int8_t SOBEL_5[25] = {
+        -1,   -2,   0,   1,   1,
+        -4,   -8,   0,   8,   4,
+        -6,  -12,   0,  12,   6,
+        -4,   -8,   0,   8,   4,
+        -1,   -2,   0,   2,   1
     };
 
     // loop para passar pelos dados e convoluciona
@@ -312,8 +279,8 @@ void sobel5(img* img){
             index = currentRow * img->rowSize + j * ((img->depth )/8);
 
             // preenche a matriz 5x5 considerando vizinhanças 5x5 mesmo
-            for (k = -1; k < 3; k++){
-                for (l = -1; l < 2; l++){
+            for (k = -2; k < 3; k++){
+                for (l = -2; l < 3; l++){
                     nbRow = i + k;
                     nbCol = j + l;
 
@@ -321,7 +288,7 @@ void sobel5(img* img){
                     if(nbRow >= 0 && nbRow < img->height && nbCol >= 0 && nbCol < img->width){
                         nbIndex = (img->height - nbRow - 1) * img->rowSize + nbCol * ((img->depth)/8);
                         // realiza o calculo do indice considerando linha e coluna da matriz num array unidimensional
-                        tempM[((k + 2) * 5) + l + 2] = (img->data[nbIndex])/2; // agora é 5x5
+                        tempM[((k + 2) * 5) + l + 2] = (img->data[nbIndex])/4; // agora é 5x5
                     }
                 }
             }
@@ -334,7 +301,7 @@ void sobel5(img* img){
             }
 
             // envia o filtro (o SOBEL_X é calculado dentro do coprocessador)
-            temp_pos = SOBEL_X;
+            temp_pos = SOBEL_5;
             for (int g=0;g<13;g++){
                 int flagOK2 = operate_buffer_send(storeMatrixB, 1, g, temp_pos);
                 temp_pos += 2;
@@ -350,7 +317,7 @@ void sobel5(img* img){
             int flagResult = operate_buffer_receive(loadMatrixResult, 1, 0, temp_pos);
 
             // cálculo o módulo das duas somas
-            newElement = round(sqrt(pow(resultado[0] * 2, 2)+pow(resultado[1] * 2, 2)));
+            newElement = round(sqrt(pow(resultado[0] * 4, 2)+pow(resultado[1] * 4, 2)));
             if(newElement > 255) newElement = 255;
 
             // reescrevendo em 3 canais
@@ -362,4 +329,8 @@ void sobel5(img* img){
     }
 
     img->data=new_imgData;
+}
+
+void laplacian(img* img){
+    
 }
