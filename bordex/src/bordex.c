@@ -176,8 +176,6 @@ void sobel3(img* img){
     int16_t tempConvRes; // resultado temporário da convolução
     int i, j, k, l, currentRow, index, nbRow, nbCol, nbIndex, sumX, sumY, newElement;
     int8_t tempM[25] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    int8_t convX[25] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    int8_t convY[25] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     // aloca espaco para novos dados da imagem
     new_imgData = (unsigned char*)calloc(img->size, sizeof(unsigned char));
 
@@ -257,8 +255,6 @@ void sobel5(img* img){
     int16_t tempConvRes; // resultado temporário da convolução
     int i, j, k, l, currentRow, index, nbRow, nbCol, nbIndex, sumX, sumY, newElement;
     int8_t tempM[25] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    int8_t convX[25] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    int8_t convY[25] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     // aloca espaco para novos dados da imagem
     new_imgData = (unsigned char*)calloc(img->size, sizeof(unsigned char));
 
@@ -332,13 +328,15 @@ void sobel5(img* img){
     img->data=new_imgData;
 }
 
+void prewitt(img* img){
+
+}
+
 void laplacian(img* img){
     unsigned char* new_imgData; // guarda novos dados da imagem
     int16_t tempConvRes; // resultado temporário da convolução
     int i, j, k, l, currentRow, index, nbRow, nbCol, nbIndex, sumX, sumY, newElement;
     int8_t tempM[25] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    int8_t convX[25] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    int8_t convY[25] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     // aloca espaco para novos dados da imagem
     new_imgData = (unsigned char*)calloc(img->size, sizeof(unsigned char));
 
