@@ -218,7 +218,7 @@ void sobel3(img* img){
                 temp_pos += 2;
             }
 
-            // envia o filtro (o SOBEL_X é calculado dentro do coprocessador)
+            // envia o filtro (o somatório pós-convolução é calculado dentro do coprocessador)
             temp_pos = SOBEL_3;
             for (int g=0;g<13;g++){
                 int flagOK2 = operate_buffer_send(storeMatrixB, 1, g, temp_pos);
@@ -297,7 +297,7 @@ void sobel5(img* img){
                 temp_pos += 2;
             }
 
-            // envia o filtro (o SOBEL_X é calculado dentro do coprocessador)
+            // envia o filtro (o somatório pós convolução é calculado dentro do coprocessador)
             temp_pos = SOBEL_5;
             for (int g=0;g<13;g++){
                 int flagOK2 = operate_buffer_send(storeMatrixB, 1, g, temp_pos);
@@ -329,6 +329,80 @@ void sobel5(img* img){
 }
 
 void prewitt(img* img){
+    unsigned char* new_imgData; // guarda novos dados da imagem
+    int16_t tempConvRes; // resultado temporário da convolução
+    int i, j, k, l, currentRow, index, nbRow, nbCol, nbIndex, sumX, sumY, newElement;
+    int8_t tempM[25] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    // aloca espaco para novos dados da imagem
+    new_imgData = (unsigned char*)calloc(img->size, sizeof(unsigned char));
+
+    // declara matrizes com os filtros
+    int8_t PREWITT[25] = {
+        -1,   0,   1,   0,   0,
+        -1,   0,   1,   0,   0,
+        -1,   0,   1,   0,   0,
+         0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0
+    };   
+
+    // esse for itera pela altura, começando de baixo (ja que é bottom-up)
+    for (i = 0; i < img->height; i++){
+        currentRow = img->height - i - 1;
+        // agora, itera pela linha
+        for (j = 0; j < img->width; j++){
+            index = currentRow * img->rowSize + j * ((img->depth )/8);
+
+            // preenche a matriz 5x5 considerando vizinhanças 3x3
+            for (k = -1; k < 2; k++){
+                for (l = -1; l < 2; l++){
+                    nbRow = i + k;
+                    nbCol = j + l;
+
+                    // ve se posições estão nos limites
+                    if(nbRow >= 0 && nbRow < img->height && nbCol >= 0 && nbCol < img->width){
+                        nbIndex = (img->height - nbRow - 1) * img->rowSize + nbCol * ((img->depth)/8);
+                        // realiza o calculo do indice considerando linha e coluna da matriz num array unidimensional
+                        tempM[((k + 1) * 5) + l + 1] = (img->data[nbIndex]);
+                    }
+                }
+            }
+
+            uint8_t *temp_pos = tempM;
+            // envia a matriz A
+            for (int b=0;b<13;b++){
+                int flagOK1 = operate_buffer_send(storeMatrixA, 1, b, temp_pos);
+                temp_pos += 2;
+            }
+
+            // envia o filtro (o somatório após conv é calculado dentro do coprocessador)
+            temp_pos = PREWITT;
+            for (int g=0;g<13;g++){
+                int flagOK2 = operate_buffer_send(storeMatrixB, 1, g, temp_pos);
+                temp_pos += 2;
+            }
+
+            calculate_matriz(CONV, 1, 0); // envia sinal para iniciar op
+
+            int8_t resultado[4];
+
+            temp_pos = resultado;
+
+            // recebe apenas 2 números 
+            int flagResult = operate_buffer_receive(loadMatrixResult, 1, 0, temp_pos);
+
+            // cálculo o módulo das duas somas
+            newElement = round(sqrt(pow(resultado[0], 2)+pow(resultado[1], 2)));
+            if(newElement > 255) newElement = 255;
+
+            // reescrevendo em 3 canais
+            new_imgData[index] = (uint8_t)newElement;
+            new_imgData[index + 1] = (uint8_t)newElement;
+            new_imgData[index + 2] = (uint8_t)newElement;
+
+        }
+    }
+
+    img->data=new_imgData;
 
 }
 
@@ -378,7 +452,7 @@ void laplacian(img* img){
                 temp_pos += 2;
             }
 
-            // envia o filtro (o SOBEL_X é calculado dentro do coprocessador)
+            // envia o filtro (o resultado é calculado dentro do coprocessador)
             temp_pos = LAPLACE;
             for (int g=0;g<13;g++){
                 int flagOK2 = operate_buffer_send(storeMatrixB, 1, g, temp_pos);
