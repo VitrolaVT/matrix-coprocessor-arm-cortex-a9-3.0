@@ -147,6 +147,7 @@ module control_unit(
 	.matrizB(matrix2_reg),
 	.sum_resultX(convo_trans_resultX),
 	.sum_resultY(convo_trans_resultY),
+	.root_result(convo_trans_root),
 	.ovf(convo_trans_ovf)
 	);
 	
@@ -154,6 +155,7 @@ module control_unit(
 	wire ready_convo_trans; //Sinal de pronto do modulo de convulaçao
 	wire [7:0] convo_trans_resultX; //Resultado do eixo X
 	wire [7:0] convo_trans_resultY; //Resultado do eixo Y
+	wire [7:0] convo_trans_root; //Resultado da raiz quadrada (módulo)
 	wire convo_trans_ovf; //Overflow da convulaçao
 	
 	//Modulo da operaçao de convoluçao para filtro Roberts)
@@ -166,6 +168,7 @@ module control_unit(
 	.matrizB({matrix2_reg[199:184], matrix2_reg[159:144]}),
 	.sum_resultX(convo_ro_resultX),
 	.sum_resultY(convo_ro_resultY),
+	.root_result(convo_ro_root),
 	.ovf(convo_ro_ovf)
 	);
 	
@@ -173,6 +176,7 @@ module control_unit(
 	wire ready_convo_ro; //Sinal de pronto do modulo de convulaçao
 	wire [7:0] convo_ro_resultX; //Resultado do eixo X
 	wire [7:0] convo_ro_resultY; //Resultado do eixo Y
+	wire [7:0] convo_ro_root; //Resultado da raiz quadrada (módulo)
 	wire convo_ro_ovf; //Overflow da convulaçao
 	
 	//Transposiçao da matriz
@@ -523,14 +527,16 @@ module control_unit(
 						CONVOLUTION_TRANS: begin
 							result_reg[199:192] = convo_trans_resultX;
 							result_reg[191:184] = convo_trans_resultY;
-							result_reg[183:0] = 0;
+							result_reg[183:176] = convo_trans_root;
+							result_reg[175:0] = 0;
 							overflow = convo_trans_ovf;
 						end
 						
 						CONVOLUTION_ROBERTS: begin
 							result_reg[199:192] = convo_ro_resultX;
 							result_reg[191:184] = convo_ro_resultY;
-							result_reg[183:0] = 0;
+							result_reg[183:176] = convo_ro_root;
+							result_reg[175:0] = 0;
 							overflow = convo_ro_ovf;
 						end
 						

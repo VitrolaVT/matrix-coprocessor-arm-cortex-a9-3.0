@@ -7,7 +7,7 @@ set_global_assignment -name FAMILY "Cyclone V"
 set_global_assignment -name DEVICE 5CSEMA5F31C6
 set_global_assignment -name TOP_LEVEL_ENTITY "ghrd_top"
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 13
-set_global_assignment -name LAST_QUARTUS_VERSION "23.1std.0 Lite Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "23.1std.1 Lite Edition"
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "MON JUN 17 20:35:29 2013"
 set_global_assignment -name DEVICE_FILTER_PACKAGE FBGA
 
@@ -1010,4 +1010,5 @@ set_global_assignment -name VERILOG_FILE src/modules/trans_M.v
 set_global_assignment -name VERILOG_FILE src/modules/convolution.v
 set_global_assignment -name VERILOG_FILE src/modules/convolution_roberts.v
 set_global_assignment -name VERILOG_FILE src/modules/convolution_trans.v
+set_global_assignment -name VERILOG_FILE src/modules/sqrt_binary_search.v
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

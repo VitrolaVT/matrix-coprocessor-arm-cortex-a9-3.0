@@ -3,9 +3,8 @@ module convolution_trans(
 	input clk, rst, //Sinal de clock e reset respectivamante
 	input [199:0] matrizA, //Matriz contendo o pixel e os valores em volta
 	input [199:0] matrizB, //Matriz contendo o filtro
-	output reg [7:0] sum_resultX, //Resultado do filtro no eixo X
-	output reg [7:0] sum_resultY,  //Resultado do filtro no eixo Y
-	output reg [7:0] root_result, //Resultado da raiz quadrada (módulo) 
+	output reg [7:0] sum_resultX, // Resultado do filtro no eixo X
+	output reg [7:0] sum_resultY,  // Resultado do filtro no eixo Y
 	output reg ready, //Sinal de termino do modulo
 	output reg ovf //Registrador do overflow
 );
@@ -25,8 +24,7 @@ module convolution_trans(
 	reg [1:0] state;
 	parameter IDLE = 2'b00;
 	parameter SUM = 2'b01;
-	parameter DONE_SUM = 2'b10;
-	parameter DONE_SQRT = 2'b11;
+	parameter DONE = 2'b10;
 
 	// Contador para as somas parciais
 	reg [4:0] counter;
@@ -91,22 +89,7 @@ module convolution_trans(
 		reg48 = $signed(matrizA[15:8])    * $signed(matrizB[47:40]);
 		reg49 = $signed(matrizA[7:0])     * $signed(matrizB[7:0]);
 	end
-	
-	//Módulo para calcular raiz quadrada
-	sqrt_binary_search sqrt_binary_search(
-		.clk(clk),
-		.rst(rst),
-		.start(start_sqrt),
-		.sum_resultX(sum_resultX),
-		.sum_resultY(sum_resultY),
-		.ready(ready_sqrt),
-		.root(root_result_wire)
-	);
-	
-	reg start_sqrt;
-	wire ready_sqrt;
-	wire [7:0] root_result_wire;
-	
+
 	//Maquina de estados
 	always @(posedge clk or posedge rst) begin
 		if (rst) begin
@@ -125,7 +108,6 @@ module convolution_trans(
 						intermediate_reg_Y = 0;
 						counter = 0;
 						ready = 0;
-						start_sqrt = 0;
 						state = SUM;
 					end
 					else begin
@@ -197,11 +179,11 @@ module convolution_trans(
 						end
 						
 						12: begin
-							state = DONE_SUM;
+							state = DONE;
 						end
 				
 						default: begin
-							state = DONE_SUM;
+							state = DONE;
 						end
 					endcase
 					
@@ -209,7 +191,7 @@ module convolution_trans(
 					
 				end
 				
-				DONE_SUM: begin
+				DONE: begin
 					if (intermediate_reg_X > 127 || intermediate_reg_X < -128) begin
 						sum_resultX = 8'b11111111;
 						ovf = 1;
@@ -228,24 +210,10 @@ module convolution_trans(
 						ovf = 0;
 					end
 					
-					start_sqrt = 1;
-					state = DONE_SQRT;
+					ready = 1;
+					state = IDLE;
 				end
-				
-				DONE_SQRT: begin
-					start_sqrt = 0;
-					if (ready_sqrt) begin
-						root_result = root_result_wire;
-						ready = 1;
-						state = IDLE;
-					end
-					
-					else begin
-						state = DONE_SQRT;
-					end
-					
-				end
-				
+	
 				default: begin
 					state = IDLE;
 				end

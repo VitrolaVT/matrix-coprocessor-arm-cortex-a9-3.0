@@ -1,0 +1,86 @@
+module sqrt_binary_search (
+	input clk, rst, //Sinais do clock e de reset respectivamente
+	input start, //Sinal para começar a calcular a raiz quadrada
+	input [7:0] sum_resultX, //Resultado do filtro no eixo X
+	input [7:0] sum_resultY,  //Resultado do filtro no eixo Y
+	output reg ready, //Sinal de término de cálculo do módulo(raiz quadrada)
+	output reg [7:0] root //Raiz quadrada
+);
+	
+	//Registradores intermediários para aplicar o algoritmo de busca binária
+	reg [7:0] low, high, mid;
+	reg [15:0] square;  // Precisa de 16 bits para guardar mid*mid
+	
+	//Máquina de estados para aplicar o algoritmo
+	reg [1:0] state;
+	localparam IDLE  = 2'b00;
+	localparam CALC  = 2'b01;
+	localparam DONE  = 2'b10;
+	
+	
+	//Registradores para pegar a soma das potências dos resultados dos filtros
+	reg [15:0] pow_X;
+	reg [15:0] pow_Y;
+	reg [16:0] sum_pow;
+	
+	//Potência combinatória
+	always @(*) begin
+		pow_X = sum_resultX * sum_resultX;
+		pow_Y = sum_resultY * sum_resultY;
+	end
+	
+	
+	always @(posedge clk or posedge rst) begin
+		if (rst) begin
+			low = 0;
+			high = 0;
+			mid = 0;   
+			square = 0; 
+			root = 0;
+			ready = 0; 
+			state  <= IDLE;
+		end 
+		else begin
+			case (state)
+				IDLE: begin
+				ready <= 1'b0;
+if (start) begin
+low   <= 8'd0;
+high  <= number;
+state <= CALC;
+end
+end
+
+CALC: begin
+if (low <= high) begin
+mid    <= (low + high) >> 1;
+square <= ((mid) * (mid));
+// Aguarda um ciclo para square ficar pronto
+state  <= DONE;
+end else begin
+// Se não achar exata, retorna high como raiz inteira
+root   <= high[3:0];
+state  <= DONE;
+end
+end
+
+DONE: begin
+if (square == number) begin
+root <= mid[3:0];
+ready <= 1'b1;
+if (!start)
+state <= IDLE;
+end else if (square < number) begin
+low  <= mid + 1;
+state <= CALC;
+end else begin
+high <= mid - 1;
+state <= CALC;
+end
+end
+
+endcase
+end
+end
+
+endmodule
