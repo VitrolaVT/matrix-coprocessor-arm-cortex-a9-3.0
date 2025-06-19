@@ -189,7 +189,7 @@ void edgeDet(img* img){
        -2,   -2,   -4,   -2,   -2
    };
   
-   int8_t SOBEL_5X5_V2[25] = { //IA
+   int8_t SOBEL_5X5_V2[25] = {
        -2,   -2,   -4,   -2,   -2,
        -1,   -1,   -2,   -1,   -1,
         0,    0,    0,    0,    0,
@@ -197,7 +197,7 @@ void edgeDet(img* img){
         2,    2,    4,    2,    2
    };
 
-   int8_t SOBEL_5X5_V4[25] = { //Robson
+   int8_t SOBEL_5X5_V4[25] = {
      -1,   -2,   0,   2,   1,
      -2,   -3,   0,   3,   2,
      -3,   -4,   0,   3,   4,
@@ -205,7 +205,7 @@ void edgeDet(img* img){
      -1,   -2,   0,   2,   1
 };
 
-   int8_t SOBEL_5X5_V3[25] = { //GIULIA
+   int8_t SOBEL_5X5_V3[25] = {
        -1,   -2,   0,   2,   1,
        -4,   -8,   0,   8,   4,
         -6,    -12,    0,    12,    6,
