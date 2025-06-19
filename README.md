@@ -67,7 +67,7 @@ Para que o projeto funcione corretamente, é necessário que você tenha:
 
 ### 4. Transferir os arquivos para o HPS
 - Abra o subdiretório `bordex` no diretório raiz extraído.
-- Certifique-se de que a pasta `src` (com `bordex.c` e `makefile`) e a pasta `lib` estão organizadas corretamente.
+- Certifique-se de que a pasta `src` (com `bordex2.c` e `makefile`) e a pasta `lib` estão organizadas corretamente.
 - Use um dos métodos abaixo para transferir os arquivos para o HPS:
 
 #### Opção 1: Pelo terminal (Linux/macOS/WSL)
@@ -164,7 +164,6 @@ O desenvolvimento seguiu lidando com algumas peculiaridades do formato BMP, como
 A biblioteca `Matriks` foi escrita em Assembly para ARMv7 e serve como interface entre o processador (HPS) da DE1-SoC e o coprocessador de operações com matrizes implementado em Verilog na FPGA . Ela foi projetada anteriormente para o Projeto versão 2.0. O link desse projeto está a seguir: [matrix-coprocessor-arm-cortex-a9-2.0](https://github.com/riancmd/matrix-coprocessor-arm-cortex-a9-2.0/tree/main)
 
 ### 🔧 Como funciona a biblioteca?
-
 A biblioteca realiza, em geral, 6 ações, incluindo: inicializar o mapeamento de memória, enviar instruções, enviar um sinal de início de operação, receber os dados do coprocessador, verificar situações de overflow e desmapear a memória. Abaixo, uma breve descrição de cada etapa:
 
 1. **Inicialização**: Mapeia os registradores da FPGA na memória virtual do Linux, através de `/dev/mem` (utilizando a função start_program).
@@ -191,23 +190,49 @@ A partir das funções listadas a baixo, são então enviados as matrizes de cad
 ---
 
 ## ✖ Programa principal
-AAAAAAAAAAAAAAA
+### Bordex
+O `Bordex` é o programa principal do projeto, que gerencia as informações da imagem e as solicitações de operações para o coprocessador. Ele implementa os algoritmos de detecção de bordas utilizando o coprocessador aritmético 3.0, oferecendo uma interface simples no próprio terminal para aplicar diferentes filtros em imagens BMP.
+
+### Características
+* Suporte a imagens BMP de 24 bits
+* Processamento em escala de cinza
+* Tratamento automático de bordas da imagem
+
+### Filtros
+O Bordex oferece cinco filtros diferentes para detecção de bordas:
+
+* **Sobel 3x3:** Filtro que detecta bordas calculando gradientes nas direções horizontal e vertical
+* **Sobel 5x5:** Versão expandida do Sobel com janela maior, oferecendo maior precisão em bordas suaves
+* **Prewitt 3x3:** Alternativa ao Sobel com características similares, mas com diferentes coeficientes
+* **Roberts 2x2:** Filtro que trata bordas diagonais
+* **Laplace 5x5:** Baseado na segunda derivada, detecta bordas independentemente da direção e é bem sensível
+
+### Funções
+O programa possui algumas funções relevantes que podem ser utilizadas na main `bordex2.c`, são elas:
+`preprocess():` Carrega e prepara a imagem BMP em preto e branco (como explicado anteriormente)
+`edgeDet():` Implementa todos os algoritmos de detecção de bordas
+`saveImg():` Salva a imagem processada mantendo a compatibilidade BMP
+
+Todas as funções lidam com a struct criada na main. Caso tenha interesse em modificar a main e adicionar uma outra sequência de instruções, é necessário utilizar a ordem correta das funções. Antes de utilizar a detecção de bordas com o `edgeDet()`, é preciso realizar o pré-processamento. Após a detecção de bordas, é preciso salvar a imagem para ver o resultado. Caso queira ver o resultado do pré-processamento, também é preciso salvar a imagem com `saveImg()`.
+
+A struct `img` guarda os metadados da imagem, o que facilita a manipulação e processamento dos dados da mesma.
 
 ## ✖ Testes
 AAAAAAAAAAAAAAA
 
 ## ✖ Conclusão
-AAAAAAAAAAAAAAA
+O projeto representou um aplicação interessante do coprocessador aritmético de matrizes, tendo uma implementação bem-sucedida de um sistema de detecção de bordas e enfatizando, no fim das contas, a cooperação entre processamento em software e hardware dedicado. O coprocessador também demonstrou-se rápido, conseguindo processar imagens de 320x240 pixels em aproximadamente 2 segundos, um desempenho notável para a aplicação de filtros complexos como Sobel, Prewitt, Roberts e Laplace.
+A arquitetura desenvolvida aproveita as vantagens do processamento paralelo implementado no coprocessador, especialmente na aplicação simultânea dos kernels para os eixos X e Y, resultando em uma otimização significativa do tempo de processamento. Os resultados obtidos confirmam o quão útil o projeto pode ser e, da mesma forma, sugere-se expandir futuramente o sistema, tanto na implementação de novos filtros quanto na introdução de novos componentes no coprocessador que tornem ainda mais eficiente o processamento dos filtros (como um módulo para cálculo de raiz e módulo).
 
 ## 📚 Referências
 * Patterson, D. A. ; Hennessy, J. L. 2016. Morgan Kaufmann Publishers. Computer organization and design: ARM edition. 5ª edição.
+
 * GEKSFORGEEKS. Co-processor in Computer Architecture. Disponível em: https://www.geeksforgeeks.org/co-processor-computer-architecture/. 
 
-* INTEL CORPORATION. Intel 8087 Numeric Data Processor: User’s Manual. Disponível em: https://datasheets.chipdb.org/Intel/x86/808x/datashts/8087/205835-007.pdf. 
+* INTEL CORPORATION. Intel 8087 Numeric Data Processor: User’s Manual. Disponível em: https://datasheets.chipdb.org/Intel/x86/808x/datashts/8087/205835-007.pdf.
 
-* PANTUZA, J. Organização e arquitetura de computadores: pipeline em processadores. Disponível em: https://blog.pantuza.com/artigos/organizacao-e-arquitetura-de-computadores-pipeline-em-processadores. 
+* JUNIOR, G. B. Detectando Bordas: Filtros Passa Alta. Disponível em: https://nca.ufma.br/~geraldo/vc/5.bordas.pdf.
 
-* FPGA TUTORIAL. How to write a basic Verilog Testbench. Disponível em: https://fpgatutorial.com/how-to-write-a-basic-verilog-testbench/.
 
 
 ## 👥 Colaboradores
