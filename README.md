@@ -209,8 +209,11 @@ O Bordex oferece cinco filtros diferentes para detecção de bordas:
 
 ### Funções
 O programa possui algumas funções relevantes que podem ser utilizadas na main `bordex2.c`, são elas:
+
 `preprocess():` Carrega e prepara a imagem BMP em preto e branco (como explicado anteriormente)
+
 `edgeDet():` Implementa todos os algoritmos de detecção de bordas
+
 `saveImg():` Salva a imagem processada mantendo a compatibilidade BMP
 
 Todas as funções lidam com a struct criada na main. Caso tenha interesse em modificar a main e adicionar uma outra sequência de instruções, é necessário utilizar a ordem correta das funções. Antes de utilizar a detecção de bordas com o `edgeDet()`, é preciso realizar o pré-processamento. Após a detecção de bordas, é preciso salvar a imagem para ver o resultado. Caso queira ver o resultado do pré-processamento, também é preciso salvar a imagem com `saveImg()`.
@@ -222,6 +225,7 @@ AAAAAAAAAAAAAAA
 
 ## ✖ Conclusão
 O projeto representou um aplicação interessante do coprocessador aritmético de matrizes, tendo uma implementação bem-sucedida de um sistema de detecção de bordas e enfatizando, no fim das contas, a cooperação entre processamento em software e hardware dedicado. O coprocessador também demonstrou-se rápido, conseguindo processar imagens de 320x240 pixels em aproximadamente 2 segundos, um desempenho notável para a aplicação de filtros complexos como Sobel, Prewitt, Roberts e Laplace.
+
 A arquitetura desenvolvida aproveita as vantagens do processamento paralelo implementado no coprocessador, especialmente na aplicação simultânea dos kernels para os eixos X e Y, resultando em uma otimização significativa do tempo de processamento. Os resultados obtidos confirmam o quão útil o projeto pode ser e, da mesma forma, sugere-se expandir futuramente o sistema, tanto na implementação de novos filtros quanto na introdução de novos componentes no coprocessador que tornem ainda mais eficiente o processamento dos filtros (como um módulo para cálculo de raiz e módulo).
 
 ## 📚 Referências
