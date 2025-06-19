@@ -151,13 +151,44 @@ A nova tabelade ***opcodes*** e seus comportamentos podem ser vistos a seguir:
 | `1010`     | Convolução com transposição | Não usa esse campo                                  | Não usa esse campo                                                                 | Não usa esse campo                                           | Aplica operação de convolução para filtros Sobel, Prewitt e Laplace usando transposição para encontrar o kernel do outro eixo |
 | `1011`     | Convolução para Roberts     | Não usa esse campo                                  | Não usa esse campo                                                                 | Não usa esse campo                                           | Aplica convolução para filtro Roberts, encontrando o kernel do outro eixo por troca de posição entre elementos de uma mesma linha |
 
+### 📍 Ponto de interesse
+Como foi usado uma soma de **3 registradores** a cada ciclo por vez (**máximo** de operadores em uma única soma encontrado) e os processos de convolução para kernel do eixo X e kernel do eixo Y foram feitos em **paralelo**, isso culminou em um tempo muito otimizado de processamento da imagem inteira: o tempo visto para detectar as bordads de uma imagem .bmp de tamanho 320x240 foi de **3.2 segundos** no início do projeto. Nos ajustes **finais** do projeto, o tempo de execução foi reduzido ainda mais gerando uma espera em um intervalo de **1.8 - 2.2 segundos**. 
+Portanto, um dos **melhores** benefícios do projeto como um todo é seu **ágil** tempo de aplicação de filtro, que permitiu, inclusive, testes em laboratório mais rápidos e em maior quantidade já que a espera entre testes é curta.
+
 ## 🤳 Pré-processamento de imagem
 Este código implementa um sistema de pré-processamento para imagens BMP que trabalha com a estrutura específica desse formato de arquivo. Uma imagem BMP é organizada em duas partes principais: o cabeçalho (que contém informações como dimensões, profundidade de cor e offset) e os dados dos pixels propriamente ditos. O código utiliza uma struct (`img`) para armazenar todos esses metadados, fazendo a leitura completa do arquivo e extraindo as informações essenciais do cabeçalho. A conversão para escala de cinza ocorre nessa parte e é essencial para a aplicação dos filtros. Ela funciona da seguinte forma: como cada pixel colorido possui três canais (vermelho, verde e azul), o código calcula a média desses três valores e aplica esse resultado nos três canais simultaneamente. Quando os três canais RGB têm o mesmo valor, o resultado visual é uma tonalidade de cinza, preparando perfeitamente a imagem para algoritmos de detecção de bordas que trabalham melhor com informações apenas de luminosidade.
 
 O desenvolvimento seguiu lidando com algumas peculiaridades do formato BMP, como o fato de que os dados dos pixels ficam separados do cabeçalho por um offset específico, e o sistema de padding que alinha cada linha em múltiplos de 4 bytes para otimização de memória. Apenas depois foi criada a struct que facilita o processo, numa refatoração do código. Outro detalhe importante é que as imagens BMP armazenam as linhas de forma invertida (de baixo para cima), então o código precisa considerar isso ao processar os pixels. A conversão para escala de cinza foi implementada de forma eficiente, percorrendo cada pixel e aplicando a transformação diretamente nos dados originais, economizando memória e deixando tudo pronto para os filtros de detecção de bordas.
 
-## ✖ Integração com a biblioteca
-AAAAAAAAAAAAAAA
+## 📚 Integração com a biblioteca
+A biblioteca `Matriks` foi escrita em Assembly para ARMv7 e serve como interface entre o processador (HPS) da DE1-SoC e o coprocessador de operações com matrizes implementado em Verilog na FPGA . Ela foi projetada anteriormente para o Projeto versão 2.0. O link desse projeto está a seguir: [matrix-coprocessor-arm-cortex-a9-2.0](https://github.com/riancmd/matrix-coprocessor-arm-cortex-a9-2.0/tree/main)
+
+### 🔧 Como funciona a biblioteca?
+
+A biblioteca realiza, em geral, 6 ações, incluindo: inicializar o mapeamento de memória, enviar instruções, enviar um sinal de início de operação, receber os dados do coprocessador, verificar situações de overflow e desmapear a memória. Abaixo, uma breve descrição de cada etapa:
+
+1. **Inicialização**: Mapeia os registradores da FPGA na memória virtual do Linux, através de `/dev/mem` (utilizando a função start_program).
+2. **Envio de dados**: Envia pares de valores inteiros (elementos da matriz ou dados intermediários) para a FPGA.
+3. **Início da operação**: Aciona o coprocessador para realizar a operação desejada (soma, subtração, multiplicação, etc.).
+4. **Recebimento dos resultados**: Lê os dados processados de volta para o HPS.
+5. **Verificação de overflow**: Verifica se houve overflow durante o processamento.
+6. **Finalização**: Desfaz o mapeamento de memória e encerra o uso da biblioteca.
+
+A partir das funções listadas a baixo, são então enviados as matrizes de cada pixel e as matrizes dos filtros a partir do *operate_buffer_send*, a operação ocorre através da chamada de  *calculate_matriz*, e obtém-se o resultado com o *operate_buffer_receive* para o eixo X e para o eixo Y para serem manipulados em C - calcular módulo para Sobel, Prewitt e Robets ou o valor absoluto para Laplace. Como as imagens de base são de tamanho 320x240, são enviados 76800 pixels (OBS: Imagens de qualquer tamanho podem ser usadas, desde que sejam no formato ***BITMAP(bmp)***, cada um em uma matriz adequada para a posição do pixel, já para o filtro é enviado apenas uma vez antes de iterar pela imagem, o que resultou em uma diminuição do tempo de processamento da imagem. Antes o tempo era de cerca de 3.2 segundos enviando matriz A e B a cada iteração, com a mudança descrita, o tempo foi reduzido a **incríveis** 2.2 segundos.
+
+---
+
+### 📌 Tabela compacta de funções
+| Função                    | Argumentos                          | Bits por Argumento (Total) | Descrição                                                                 |
+|---------------------------|-------------------------------------|----------------------------|---------------------------------------------------------------------------|
+| `start_program`           | `void`                              | -                          | Inicializa o programa e mapeia os endereços dos PIOs                      |
+| `exit_program`            | `void`                              | -                          | Finaliza o programa e desmapeia a memória                                 |
+| `operate_buffer_send`     | `(opcode, size, position, matriz)` | **Instrução (32 bits):**<br>- 8 bits N1<br>- 8 bits N2<br>- 4 bits Opcode<br>- 2 bits Size<br>- 3 bits Position<br>- 1 bit Start<br>- 6 bits não utilizados | Envia 2 elementos da matriz por vez para o coprocessador                  |
+| `calculate_matriz`        | `(opcode, size, position)`         | **Instrução (32 bits):**<br>- 4 bits Opcode<br>- 2 bits Size<br>- 3 bits Position<br>- 1 bit Start<br>- 22 bits não utilizados | Inicia uma operação matricial no coprocessador                            |
+| `operate_buffer_receive`  | `(opcode, size, position, matriz)` | **Retorno (32 bits):**<br>- 4 valores de 8 bits cada (total 32 bits)       | Recebe 4 elementos da matriz resultante por vez do coprocessador          |
+| `signal_overflow`         | `void`                              | **Sinal (1 bit):**<br>- 1 bit Overflow (bit 0 do PIO3)                    | Verifica se ocorreu overflow na última operação                           |
+
+---
 
 ## ✖ Programa principal
 AAAAAAAAAAAAAAA
