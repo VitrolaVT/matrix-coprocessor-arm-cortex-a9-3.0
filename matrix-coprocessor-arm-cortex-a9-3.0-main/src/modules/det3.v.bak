@@ -1,0 +1,84 @@
+module det3(
+    input signed [71:0] m, //uma matriz de 3 bytes x 3 bytes
+    input rst, //sinal de reset
+    output reg signed [7:0] det, // Saída 16 bits com sinal
+    output reg ovf
+);
+
+    reg [31:0] diag_1, diag_2; //regs para as duas diagonais (primária e secundária)
+    reg [31:0] temp_det; //reg temporário c tamanho suficiente p produto e soma
+	 
+	 //Fios para as entradas dos modulos
+	 wire signed [7:0] p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12;
+	 wire signed ovf1, ovf2, ovf3, ovf4, ovf5, ovf6, ovf7, ovf8, ovf9, ovf10, ovf11, ovf12;
+	 
+	 //Calculo dos produtos individuais da diagonal 1
+		multiplier prod1(
+			 .a(m[71:64]), .b(m[39:32]), .rst(rst), .prod(p1), .ovf(ovf1)
+		);
+		multiplier prod2(
+			 .a(p1), .b(m[7:0]), .rst(rst), .prod(p2), .ovf(ovf2)
+		);
+		multiplier prod3(
+			 .a(m[63:56]), .b(m[31:24]), .rst(rst), .prod(p3), .ovf(ovf3)
+		);
+		multiplier prod4(
+			 .a(p3), .b(m[23:16]), .rst(rst), .prod(p4), .ovf(ovf4)
+		);
+		multiplier prod5(
+			 .a(m[55:48]), .b(m[47:40]), .rst(rst), .prod(p5), .ovf(ovf5)
+		);
+		multiplier prod6(
+			 .a(p5), .b(m[15:8]), .rst(rst), .prod(p6), .ovf(ovf6)
+		);
+		 
+		//Calculo dos produtos individuais da diagonal 2
+		multiplier prod7(
+			 .a(m[63:56]), .b(m[47:40]), .rst(rst), .prod(p7), .ovf(ovf7)
+		);
+		multiplier prod8(
+			 .a(p7), .b(m[7:0]), .rst(rst), .prod(p8), .ovf(ovf8)
+		);
+		multiplier prod9(
+			 .a(m[71:64]), .b(m[31:24]), .rst(rst), .prod(p9), .ovf(ovf9)
+		);
+		multiplier prod10(
+			 .a(p9), .b(m[15:8]), .rst(rst), .prod(p10), .ovf(ovf10)
+		);
+		multiplier prod11(
+			 .a(m[55:48]), .b(m[39:32]), .rst(rst), .prod(p11), .ovf(ovf11)
+		);
+		multiplier prod12(
+			 .a(p11), .b(m[23:16]), .rst(rst), .prod(p12), .ovf(ovf12)
+		);
+
+	 
+
+    always@(*) begin
+		  if(rst) begin //verifica reset, zerando ovf e det
+            det = 8'b0;
+            ovf = 0;
+        end
+
+        else begin
+            //organiza diagonais 1 e 2	
+				/*diag_1 = m[71:64] * m[39:32] * m[7:0] +    // a00 * a11 * a22
+							m[63:56] * m[31:24] * m[23:16] +  // a01 * a12 * a20
+							m[55:48] * m[47:40] * m[15:8];    // a02 * a10 * a21
+							
+				diag_2 = m[63:56] * m[47:40] * m[7:0]   +  // a01 * a11 * a22
+							m[71:64] * m[31:24] * m[15:8]  +  // a00 * a12 * a21
+							m[55:48] * m[39:32] * m[23:16];   // a02 * a10 * a20 */
+				
+				diag_1 = p2 + p4 + p6;
+				diag_2 = p8 + p10 + p12;
+				
+            temp_det = diag_1 - diag_2; //subtrai as diagonais encontrando resultante
+
+            det = temp_det[7:0]; //considera apenas os 8 LSBs
+
+            ovf = (ovf1 || ovf2 || ovf3 || ovf4 || ovf5 || ovf6 || ovf7 || ovf8 || ovf9 || ovf10 || ovf11 || ovf12 || temp_det > 127 || temp_det <  -128); //verifica overflow
+        end
+    end
+
+endmodule
