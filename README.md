@@ -189,7 +189,7 @@ A partir das funções listadas a baixo, são então enviados as matrizes de cad
 
 ---
 
-## ✖ Programa principal
+## 🧠 Programa principal
 ### Bordex
 O `Bordex` é o programa principal do projeto, que gerencia as informações da imagem e as solicitações de operações para o coprocessador. Ele implementa os algoritmos de detecção de bordas utilizando o coprocessador aritmético 3.0, oferecendo uma interface simples no próprio terminal para aplicar diferentes filtros em imagens BMP.
 
@@ -220,7 +220,7 @@ Todas as funções lidam com a struct criada na main. Caso tenha interesse em mo
 
 A struct `img` guarda os metadados da imagem, o que facilita a manipulação e processamento dos dados da mesma.
 
-## ✖ Testes
+## 🧪 Testes
 Aqui, alguns dos testes realizados utilizando o programa Bordex. Para isso, a imagem "1" na pasta img\sample foi utilizada.
 
 `Filtro de Roberts`
@@ -231,7 +231,7 @@ Aqui, alguns dos testes realizados utilizando o programa Bordex. Para isso, a im
 
 ![Filtro de Prewitt](prewitt.jpg)
 
-## ✖ Conclusão
+## ✅ Conclusão
 O projeto representou um aplicação interessante do coprocessador aritmético de matrizes, tendo uma implementação bem-sucedida de um sistema de detecção de bordas e enfatizando, no fim das contas, a cooperação entre processamento em software e hardware dedicado. O coprocessador também demonstrou-se rápido, conseguindo processar imagens de 320x240 pixels em aproximadamente 2 segundos, um desempenho notável para a aplicação de filtros complexos como Sobel, Prewitt, Roberts e Laplace.
 
 A arquitetura desenvolvida aproveita as vantagens do processamento paralelo implementado no coprocessador, especialmente na aplicação simultânea dos kernels para os eixos X e Y, resultando em uma otimização significativa do tempo de processamento. Os resultados obtidos confirmam o quão útil o projeto pode ser e, da mesma forma, sugere-se expandir futuramente o sistema, tanto na implementação de novos filtros quanto na introdução de novos componentes no coprocessador que tornem ainda mais eficiente o processamento dos filtros (como um módulo para cálculo de raiz e módulo).
