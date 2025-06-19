@@ -221,7 +221,15 @@ Todas as funções lidam com a struct criada na main. Caso tenha interesse em mo
 A struct `img` guarda os metadados da imagem, o que facilita a manipulação e processamento dos dados da mesma.
 
 ## ✖ Testes
-AAAAAAAAAAAAAAA
+Aqui, alguns dos testes realizados utilizando o programa Bordex. Para isso, a imagem "1" na pasta img\sample foi utilizada.
+
+`Filtro de Roberts`
+
+![Filtro de Roberts](roberts.jpg)
+
+`Filtro de Prewitt`
+
+![Filtro de Prewitt](prewitt.jpg)
 
 ## ✖ Conclusão
 O projeto representou um aplicação interessante do coprocessador aritmético de matrizes, tendo uma implementação bem-sucedida de um sistema de detecção de bordas e enfatizando, no fim das contas, a cooperação entre processamento em software e hardware dedicado. O coprocessador também demonstrou-se rápido, conseguindo processar imagens de 320x240 pixels em aproximadamente 2 segundos, um desempenho notável para a aplicação de filtros complexos como Sobel, Prewitt, Roberts e Laplace.
